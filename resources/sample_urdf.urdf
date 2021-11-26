@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
-<robot name="table.urdf">
-  <link name="baseLink">
+<robot name=""> <!-- name="..." -->
+  <link name=""> <!-- name="..." -->
     <contact>
       <lateral_friction value="1.0"/>
       <rolling_friction value="0.0"/>
@@ -9,26 +9,23 @@
     </contact>
     <inertial>
       <origin rpy="0 0 0" xyz="0.00 0.00 0.00"/>
-       <mass value=".1"/>
+       <mass value=""/> <!-- value="..." -->
        <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="/home/szymon/catkin_TS/src/image_generator/data/table2.obj" scale=".5 .5 .5"/>
+        <mesh filename="" scale=""/> <!-- filename="..." scale="..." -->
       </geometry>
-       <material name="red">
-        <color rgba="1 0.4 0.4 1"/>
+       <material name=""> <!-- name="..." -->
+        <color rgba=""/> <!-- rgba="..." -->
       </material>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-	 	<mesh filename="/home/szymon/catkin_TS/src/image_generator/data/table2.obj" scale=".5 .5 .5"/>
+	 	<mesh filename="" scale=""/> <!-- filename="..." scale="..." -->
       </geometry>
     </collision>
   </link>
 </robot>
-
-
-
