@@ -14,7 +14,7 @@ os.makedirs(output_path, exist_ok=True)
 tree = ET.parse("../resources/sample_urdf.urdf")
 root = tree.getroot()
 
-object_categories = {}
+objects = {}
 category_list = [i for i in os.listdir(input_path) if os.path.isdir(os.path.join(input_path, i))]
 for category in category_list:
     os.makedirs(output_path + "/" + category, exist_ok=True)  # Create directories to contains converted urdfs.
@@ -59,6 +59,6 @@ for category in category_list:
                   for name in files
                   if name.endswith(".urdf")]  # Find all urdf files
 
-    object_categories[category] = Category(names, obj_files, urdf_files)
+    objects[category] = Category(names, obj_files, urdf_files)
 
-pickle.dump(object_categories, open("categories.pickle", "wb"))
+pickle.dump(objects, open(os.path.abspath("../resources/pickle/categories.pickle"), "wb"))

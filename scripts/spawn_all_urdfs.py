@@ -8,7 +8,7 @@ from gazebo_msgs.srv import SpawnModel
 from category import Category
 
 
-def gazebo_spawn_model_client(model_name, model_xml, robot_namespace, initial_pose, reference_frame="world"):
+def gazebo_spawn_model_client(model_name, model_xml, robot_namespace, initial_pose=Pose(), reference_frame="world"):
     rospy.wait_for_service("/gazebo/spawn_urdf_model")
     try:
         spawner = rospy.ServiceProxy("/gazebo/spawn_urdf_model", SpawnModel)
@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
     # loading a pickle created by convert_obj_to_urdf.py script
     try:
-        objects = pickle.load(open(abs_path + "/scripts/categories.pickle", "rb"))
+        objects = pickle.load(open(abs_path + "/resources/pickle/categories.pickle", "rb"))
     except FileNotFoundError:
         print("FileNotFoundError: You need to execute convert_obj_to_urdf.py before executing this script!")
         quit()
