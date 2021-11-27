@@ -2,10 +2,12 @@ cmake_minimum_required(VERSION 3.0.2)
 project(image_generator)
 
 find_package(catkin REQUIRED COMPONENTS
+  gazebo_plugins
   gazebo_ros
   roscpp
   rospy
   std_msgs
+  tf
 )
 
 catkin_package(
