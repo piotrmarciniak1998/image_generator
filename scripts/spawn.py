@@ -26,16 +26,16 @@ if __name__ == "__main__":
 
     # loading a pickle created by convert_obj_to_urdf.py script
     try:
-        object_categories = pickle.load(open(abs_path + "/scripts/categories.pickle", "rb"))
+        objects = pickle.load(open(abs_path + "/scripts/categories.pickle", "rb"))
     except FileNotFoundError:
         print("FileNotFoundError: You need to execute convert_obj_to_urdf.py before executing this script!")
         quit()
 
     # spawning all of the tables in ../resources/urdf_files
-    for category_number, object_category in enumerate(object_categories):
-        for object_number in range(object_category.len):
-            gazebo_spawn_model_client(model_name=object_category.names[object_number],
-                                      model_xml=open(object_category.urdf_files[object_number], 'r').read(),
-                                      robot_namespace=object_category.category,
-                                      initial_pose=Pose(position=Point(category_number, object_number, 0.1),
+    for category_number, category in enumerate(objects):
+        for number in range(objects[category].len):
+            gazebo_spawn_model_client(model_name=objects[category].names[number],
+                                      model_xml=open(objects[category].urdf_files[number], 'r').read(),
+                                      robot_namespace=category,
+                                      initial_pose=Pose(position=Point(category_number, number, 0.1),
                                                         orientation=Quaternion(0.7071, 0, 0, 0.7071)))

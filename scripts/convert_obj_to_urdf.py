@@ -6,6 +6,7 @@ from category import Category
 
 # This script converts any obj files inside ../resources/obj_files/ to urdf files in ../resources/urdf_files, based on
 # sample urdf file (../resources/sample_urdf.urdf). The script should be run as a normal py script, not through rosrun.
+
 input_path = os.path.abspath("../resources/obj_files")
 output_path = os.path.abspath("../resources/urdf_files")
 os.makedirs(output_path, exist_ok=True)
@@ -13,9 +14,8 @@ os.makedirs(output_path, exist_ok=True)
 tree = ET.parse("../resources/sample_urdf.urdf")
 root = tree.getroot()
 
+object_categories = {}
 category_list = [i for i in os.listdir(input_path) if os.path.isdir(os.path.join(input_path, i))]
-
-object_categories = []
 for category in category_list:
     os.makedirs(output_path + "/" + category, exist_ok=True)  # Create directories to contains converted urdfs.
 
@@ -59,14 +59,6 @@ for category in category_list:
                   for name in files
                   if name.endswith(".urdf")]  # Find all urdf files
 
-    object_categories.append(Category(category, names, obj_files, urdf_files))
+    object_categories[category] = Category(names, obj_files, urdf_files)
 
 pickle.dump(object_categories, open("categories.pickle", "wb"))
-
-# test = pickle.load(open("categories.pickle", "rb"))
-#
-# for category in test:
-#     print(category.category)
-#     print(category.names)
-#     print(category.obj_files)
-#     print(category.urdf_files)
