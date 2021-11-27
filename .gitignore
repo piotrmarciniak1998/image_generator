@@ -1,0 +1,5 @@
+# ignore all files in resources/urdf_files
+resources/urdf_files
+
+# ignore categories.pickle
+scripts/categories.pickle

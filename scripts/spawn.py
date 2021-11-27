@@ -2,8 +2,10 @@
 
 import rospy
 import os
+import pickle
 from geometry_msgs.msg import Pose, Point, Quaternion
 from gazebo_msgs.srv import SpawnModel
+from category import Category
 
 
 def gazebo_spawn_model_client(model_name, model_xml, robot_namespace, initial_pose, reference_frame="world"):
@@ -22,20 +24,18 @@ def gazebo_spawn_model_client(model_name, model_xml, robot_namespace, initial_po
 if __name__ == "__main__":
     abs_path = os.path.abspath("./src/image_generator/")
 
-    # creating lists of urdf filenames and paths (only tables for now).
-    table_urdfs = []
-    table_names = []
-    for root, dirs, files in os.walk(abs_path + "/resources/urdf_files"):
-        for file in files:
-            if file.startswith("table"):
-                table_urdfs.append(os.path.join(root, file))
-                table_names.append(os.path.join(root, file).replace(".urdf", "").replace(abs_path + "/resources/urdf_files/", ""))
+    # loading a pickle created by convert_obj_to_urdf.py script
+    try:
+        object_categories = pickle.load(open(abs_path + "/scripts/categories.pickle", "rb"))
+    except FileNotFoundError:
+        print("FileNotFoundError: You need to execute convert_obj_to_urdf.py before executing this script!")
+        quit()
 
     # spawning all of the tables in ../resources/urdf_files
-    for i in range(len(table_names)):
-        gazebo_spawn_model_client(model_name=table_names[i],
-                                  model_xml=open(table_urdfs[i], 'r').read(),
-                                  robot_namespace="/tables",
-                                  initial_pose=Pose(position=Point(i, i, 1),
-                                                    orientation=Quaternion(0.7071, 0, 0, 0.7071)),
-                                  reference_frame="world")
+    for category_number, object_category in enumerate(object_categories):
+        for object_number in range(object_category.len):
+            gazebo_spawn_model_client(model_name=object_category.names[object_number],
+                                      model_xml=open(object_category.urdf_files[object_number], 'r').read(),
+                                      robot_namespace=object_category.category,
+                                      initial_pose=Pose(position=Point(category_number, object_number, 0.1),
+                                                        orientation=Quaternion(0.7071, 0, 0, 0.7071)))
