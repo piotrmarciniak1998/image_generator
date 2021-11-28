@@ -4,13 +4,13 @@ import rospy
 import os
 import pickle
 from geometry_msgs.msg import Pose, Point, Quaternion, Twist
-from gazebo_msgs.srv import GetModelState, SetModelState, SpawnModel, DeleteModel, GetModelProperties
+from gazebo_msgs.srv import SpawnModel, DeleteModel, GetWorldProperties, GetModelProperties, GetModelState, SetModelState
 from gazebo_msgs.msg import ModelState
 from category import Category
 
 
 objects = None
-spawned_models = []  # spawned_models should be loaded dynamically in the future
+spawned_models = []
 
 
 def gazebo_spawn_model_client(model_name, model_xml, robot_namespace, initial_pose=Pose(), reference_frame="world"):
@@ -31,6 +31,16 @@ def gazebo_delete_model_client(model_name):
     try:
         deleter = rospy.ServiceProxy("/gazebo/delete_model", DeleteModel)
         deleter(model_name=model_name)
+    except rospy.ServiceException as e:
+        print("Service call failed: ", e)
+
+
+def gazebo_get_world_properties_client():
+    rospy.wait_for_service("/gazebo/get_world_properties")
+    try:
+        get_world_properties = rospy.ServiceProxy("gazebo/get_world_properties", GetWorldProperties)
+        world_properties = get_world_properties()
+        return world_properties
     except rospy.ServiceException as e:
         print("Service call failed: ", e)
 
@@ -127,6 +137,11 @@ def delete_function():
     spawned_models.remove(decision)
 
 
+def get_world_properties_function():
+    world_properties = gazebo_get_world_properties_client()
+    print(world_properties)
+
+
 def get_state_function():
     global spawned_models
     print("\nModels:")
@@ -196,9 +211,11 @@ if __name__ == "__main__":
 
     # UI could see improvements in the future
     while True:
+        spawned_models = gazebo_get_world_properties_client().model_names  # loading current spawned models names
         print("\nActions: ")
         print(" s - spawn model")
         print(" d - delete model")
+        print(" g_w - get world properties")
         print(" g_s - get state of model")
         print(" g_p - get properties of model")
         print(" m - move model")
@@ -208,6 +225,8 @@ if __name__ == "__main__":
             spawn_function()
         elif decision == "d":
             delete_function()
+        elif decision == "g_w":
+            get_world_properties_function()
         elif decision == "g_s":
             get_state_function()
         elif decision == "g_p":
