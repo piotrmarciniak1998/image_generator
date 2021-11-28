@@ -12,16 +12,15 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
 )
 
-## Generate services in the 'srv' folder
 add_service_files(
   FILES
   ImageToSave.srv
 )
-## Generate added messages and services with any dependencies listed here
- generate_messages(
-   DEPENDENCIES
-   sensor_msgs
- )
+
+generate_messages(
+  DEPENDENCIES
+  sensor_msgs
+)
 
 catkin_package(
    CATKIN_DEPENDS gazebo_ros roscpp rospy std_msgs
