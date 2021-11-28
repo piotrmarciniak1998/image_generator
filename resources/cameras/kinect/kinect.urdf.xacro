@@ -6,11 +6,14 @@
   <xacro:property name="width" value="0.2" />
   <xacro:property name="mass" value="0.1" />
  <!-- Used for fixing robot to Gazebo 'base_link' -->
-  <link name="world"/>
+  <link name="kinect_world" />
 
+  <gazebo reference="kinect_world">
+    <gravity>0</gravity>
+  </gazebo>
 
   <joint name="fixed" type="fixed">
-    <parent link="world"/>
+    <parent link="kinect_world"/>
     <child link="kinect_link"/>
     <origin xyz="0 0 0.1" rpy="0 0 0"/>
   </joint>
@@ -66,6 +69,7 @@
     <gazebo reference="kinect_optical_link">
     <sensor type="depth" name="kinect_depth_sensor">
         <always_on>true</always_on>
+
         <horizontal_fov> ${91.2*3.14/180} </horizontal_fov>
         <vertical_fov> ${65.5*3.14/180} </vertical_fov>
         <diagonal_fov> ${100.6*3.14/180} </diagonal_fov>
@@ -102,5 +106,4 @@
         </plugin>
       </sensor>
   </gazebo>
-
 </robot>
