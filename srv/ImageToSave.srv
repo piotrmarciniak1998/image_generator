@@ -1,3 +1,5 @@
+string filename
+uint32 index
 sensor_msgs/Image image
 ---
-
+bool success
