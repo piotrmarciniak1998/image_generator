@@ -1,5 +1,8 @@
-# ignore all files in resources/urdf_files
+# ignore all files in ./images
+images
+
+# ignore all files in ./resources/urdf_files
 resources/urdf_files
 
-# ignore all files in resources/pickle
+# ignore all files in ./resources/pickle
 resources/pickle

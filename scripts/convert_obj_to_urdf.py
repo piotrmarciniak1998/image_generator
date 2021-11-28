@@ -10,8 +10,10 @@ from category import Category
 input_path = os.path.abspath("../resources/obj_files")
 output_path = os.path.abspath("../resources/urdf_files")
 pickle_path = os.path.abspath("../resources/pickle")
+
 os.makedirs(output_path, exist_ok=True)
 os.makedirs(pickle_path, exist_ok=True)
+
 tree = ET.parse("../resources/sample_urdf.urdf")
 root = tree.getroot()
 
