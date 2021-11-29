@@ -20,6 +20,14 @@ root = tree.getroot()
 objects = {}
 category_list = [i for i in os.listdir(input_path) if os.path.isdir(os.path.join(input_path, i))]
 for category in category_list:
+    while True:
+        try:
+            scale = float(input(f"What scale should {category} be? "))
+        except ValueError:
+            print("That is not a valid scale number!")
+        else:
+            break
+
     os.makedirs(output_path + "/" + category, exist_ok=True)  # Create directories to contains converted urdfs.
 
     obj_files = [os.path.join(root, name)
@@ -36,8 +44,8 @@ for category in category_list:
         robot_name = name + ".urdf"
 
         link_name = "baseLink"  # all of attributes below are constant for now
-        mesh_scale = "1.0 1.0 1.0"
-        mass_value = "1.0"
+        mesh_scale = f"{scale} {scale} {scale}"
+        mass_value = f"{scale * 10}"
         material_name = "red"
         color_rgba = "1 0.4 0.4 1"
 
@@ -62,6 +70,6 @@ for category in category_list:
                   for name in files
                   if name.endswith(".urdf")]  # Find all urdf files
 
-    objects[category] = Category(names, obj_files, urdf_files)
+    objects[category] = Category(names, obj_files, urdf_files, scale)
 
 pickle.dump(objects, open(os.path.abspath("../resources/pickle/categories.pickle"), "wb"))

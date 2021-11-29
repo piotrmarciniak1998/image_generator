@@ -37,5 +37,5 @@ if __name__ == "__main__":
             gazebo_spawn_model_client(model_name=objects[category].names[number],
                                       model_xml=open(objects[category].urdf_files[number], 'r').read(),
                                       robot_namespace=category,
-                                      initial_pose=Pose(position=Point(category_number, number, 0.1),
+                                      initial_pose=Pose(position=Point(category_number * 2, number * 2, 0.1),
                                                         orientation=Quaternion(0.7071, 0, 0, 0.7071)))
