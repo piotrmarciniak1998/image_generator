@@ -11,18 +11,17 @@ from image_generator.srv import ImageToSave, ImageToSaveResponse
 def handle_image_to_save(req):
     bridge = CvBridge()
     try:
-        cv2_img = bridge.imgmsg_to_cv2(req.image, "bgr8")
+        cv2_img = bridge.imgmsg_to_cv2(req.image, desired_encoding='passthrough')
     except CvBridgeError as e:
         print(e)
-    else:
-        cv2.imwrite(os.path.abspath(f"./src/image_generator/images/{req.index}_{req.filename}.png"), cv2_img)
-        return ImageToSaveResponse(True)
-    return ImageToSaveResponse(False)
+        return ImageToSaveResponse(False)
+    os.makedirs(os.path.abspath("./src/image_generator/images"), exist_ok=True)
+    cv2.imwrite(os.path.abspath(f"./src/image_generator/images/{req.index}_{req.filename}.png"), cv2_img)
+    return ImageToSaveResponse(True)
 
 
 def image_saver_server():
     rospy.init_node("image_saver_server")
-    os.makedirs(os.path.abspath("./src/image_generator/images"), exist_ok=True)
     s = rospy.Service("/image_generator/image_saver", ImageToSave, handle_image_to_save)
     rospy.spin()
 

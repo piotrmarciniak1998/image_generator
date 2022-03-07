@@ -20,12 +20,6 @@
 
   <!-- Kinect Link -->
   <link name="kinect_link">
-    <collision>
-      <origin xyz="0 0 0.1" rpy="0 0 0"/>
-      <geometry>
-          <mesh filename="package://image_generator/resources/cameras/kinect/kinect.dae" scale="0.001 0.001 0.001"/>
-      </geometry>
-    </collision>
 
     <visual>
       <origin xyz="0 0 0.1" rpy="0 0 0"/>

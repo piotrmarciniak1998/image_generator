@@ -6,3 +6,6 @@ resources/urdf_files
 
 # ignore all files in ./resources/pickle
 resources/pickle
+
+# ignore all files in ./scripts/unused_scripts
+scripts/unused_scripts

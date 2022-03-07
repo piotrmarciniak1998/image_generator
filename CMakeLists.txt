@@ -31,7 +31,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-install(DIRECTORY launch image_generator param rviz 
+install(DIRECTORY launch image_generator
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 

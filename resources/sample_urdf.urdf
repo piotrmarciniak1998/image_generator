@@ -1,6 +1,18 @@
 <?xml version="1.0" ?>
 <robot name=""> <!-- name="..." -->
-  <link name=""> <!-- name="..." -->
+  <link name="gravity_link" />
+
+  <gazebo reference="gravity_link">
+    <turnGravityOff>true</turnGravityOff>
+  </gazebo>
+
+  <joint name="fixed" type="fixed">
+    <parent link="gravity_link"/>
+    <child link="baseLink"/>
+    <origin xyz="0 0 0.1" rpy="0 0 0"/>
+  </joint>
+
+  <link name="baseLink"> <!-- name="..." -->
     <contact>
       <lateral_friction value="100.0"/>
       <rolling_friction value="0.0"/>
@@ -9,7 +21,7 @@
     </contact>
     <inertial>
       <origin rpy="0 0 0" xyz="0.00 0.00 0.00"/>
-       <mass value=""/> <!-- value="..." -->
+       <mass value="1"/> <!-- value="..." -->
        <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
     </inertial>
     <visual>
@@ -17,15 +29,9 @@
       <geometry>
         <mesh filename="" scale=""/> <!-- filename="..." scale="..." -->
       </geometry>
-       <material name=""> <!-- name="..." -->
-        <color rgba=""/> <!-- rgba="..." -->
+       <material name="red"> <!-- name="..." -->
+        <color rgba="1 0.4 0.4 1"/> <!-- rgba="..." -->
       </material>
     </visual>
-    <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <geometry>
-	 	<mesh filename="" scale=""/> <!-- filename="..." scale="..." -->
-      </geometry>
-    </collision>
   </link>
 </robot>
