@@ -11,7 +11,7 @@ from image_generator.srv import ImageToSave
 
 
 class Camera:
-    def __init__(self, name, topic_rgb, topic_depth, distance, pose=Pose(), reference_frame="world", index=0):
+    def __init__(self, name, topic_rgb, topic_depth, pose=Pose(), reference_frame="world", index=0, distance=2):
         self.name = name
         self.pose = pose
         self.reference_frame = reference_frame
@@ -26,6 +26,9 @@ class Camera:
         rospy.Subscriber(topic_rgb, Image, self.image_rgb_callback)
         rospy.Subscriber(topic_depth, Image, self.image_depth_callback)
 
+    def get_pose(self):
+        return (self.pose.position.x, self.pose.position.y, self.pose.position.z)
+
     def image_rgb_callback(self, msg):
         self.image["rgb"] = msg
         self.is_ready["rgb"] = True
@@ -34,8 +37,9 @@ class Camera:
         self.image["depth"] = msg
         self.is_ready["depth"] = True
 
-    def move(self, pose, angle):
+    def move(self, pose, distance, angle):
         q = quaternion_from_euler(0, 0, radians(angle + 180))
+        self.distance = distance
         self.pose = Pose(position=Point(pose[0] + self.distance * cos(radians(angle)),
                                         pose[1] + self.distance * sin(radians(angle)),
                                         pose[2]),

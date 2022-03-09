@@ -5,30 +5,21 @@ import os
 import pickle
 from geometry_msgs.msg import Pose, Point, Quaternion
 from gazebo_msgs.srv import SpawnModel
+from random import randint, randrange, uniform
 from item import Item
 from camera import Camera
-from random import randint, randrange, uniform
+from utils import position_on_item, get_average_x_y
 
 
-TABLE_CATEGORY = "table"
-TARGET_CATEGORY = "mug"
-OBSTRUCTOR_CATEGORY = "mug"
-RANDOM_ITEMS = 10
-CAMERA_DISTANCE = 2
-NUMBER_OF_ITERATIONS = 100
+# TODO: compare performance of the implemented method to spawning items once and only moving them on the scene
 
-
-def position_on_item(item):
-    x_min, x_max, y_min, y_max, height = item.get_bounding_box_of_normalized_item()
-    a = x_max * 0.9
-    b = y_max * 0.9
-    while True:
-        x = uniform(x_min, x_max)
-        y = uniform(y_min, y_max)
-
-        # TODO: check for collisions with other objects
-        if (x * x) / (a * a) + (y * y) / (b * b) < 1:
-            return x, y, height
+TABLE_CATEGORY = "table"  # label of table category
+TARGET_CATEGORY = "mug"  # label of target category
+TARGET_NUMBER = 0  # index of chosen item in target category
+RANDOM_ITEMS = 10  # how many unrelated items to spawn on the table
+MIN_CAMERA_DISTANCE = 1.5  # define the closest distance of the photo
+MAX_CAMERA_DISTANCE = 3.0  # define the furthest distance of the photo
+NUMBER_OF_ITERATIONS = 100  # define number of scenes to generate
 
 
 if __name__ == "__main__":
@@ -42,7 +33,9 @@ if __name__ == "__main__":
         quit()
 
     # creating camera object
-    kinect = Camera("kinect", "/kinect/color/image_raw", "/kinect/depth/image_rect_raw", 2)
+    kinect = Camera(name="kinect",
+                    topic_rgb="/kinect/color/image_raw",
+                    topic_depth="/kinect/depth/image_rect_raw")
     rospy.init_node("kinect_subscriber", anonymous=True)
 
     for iteration in range(NUMBER_OF_ITERATIONS):
@@ -53,51 +46,61 @@ if __name__ == "__main__":
         table.spawn()
 
         # spawning the obstructed mug (target)
-        target_number = randrange(len(items[TARGET_CATEGORY]))
-        target = items[TARGET_CATEGORY][target_number]
-        target.normalize_position(pose=position_on_item(table), angle=randint(0, 360))
+        target = items[TARGET_CATEGORY][TARGET_NUMBER]
+        target.normalize_position(pose=position_on_item(table),
+                                  angle=randint(0, 360))
         target.spawn()
 
         # moving camera to different angles, pointed towards the mug
-        kinect.move(pose=target.get_pose(), angle=randint(0, 360))
+        kinect.move(pose=target.get_pose(),
+                    distance=uniform(MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE),
+                    angle=randint(0, 360))
 
-        while True:
-            obstructor_number = randrange(len(items[OBSTRUCTOR_CATEGORY]))
-            if OBSTRUCTOR_CATEGORY != TARGET_CATEGORY or obstructor_number != table_number:
-                break
-        obstructor = items[OBSTRUCTOR_CATEGORY][obstructor_number]
-        # TODO: spawning the obstructor in the way of camera
-        obstructor.normalize_position(pose=position_on_item(table), angle=randint(0, 360))
+        # defining categories of random objects on the scene (excluding table and target category)
+        categories = list(items.keys())
+        categories.remove(TABLE_CATEGORY)
+        categories.remove(TARGET_CATEGORY)
+
+        # spawning obstructing item
+        obstructor_category = categories[randrange(len(categories))]
+        obstructor_number = randrange(len(items[obstructor_category]))
+        obstructor = items[obstructor_category][obstructor_number]
+        # TODO:
+        #  1. check if spawning the obstructor in the way of camera works
+        #  2. add randomization in the future
+        obstructor_position = (get_average_x_y(target.get_pose(), kinect.get_pose()), table.z_span)
+        obstructor.normalize_position(pose=obstructor_position,
+                                      angle=randint(0, 360))
         obstructor.spawn()
 
         # spawning random items on the scene
-        categories = list(items.keys())
-        categories.remove(TABLE_CATEGORY)
         random_items = []
         for i in range(RANDOM_ITEMS):
             random_category = categories[randrange(len(categories))]
             while True:
-                random_item_number = randrange(len(items[random_category]))
-                if random_category != TARGET_CATEGORY:
-                    if random_category != OBSTRUCTOR_CATEGORY or random_item_number != obstructor_number:
-                        break
-                elif random_category != OBSTRUCTOR_CATEGORY:
-                    if random_item_number != target_number:
-                        break
-                elif random_item_number != target_number and random_item_number != obstructor_number:
+                random_number = randrange(len(items[random_category]))
+                if not items[random_category][random_number].spawned:
                     break
-            random_item = items[random_category][random_item_number]
+
+            random_item = items[random_category][random_number]
             random_items.append(random_item)
-            random_item.normalize_position(pose=position_on_item(table), angle=randint(0, 360))
+            random_item.normalize_position(pose=position_on_item(table),
+                                           angle=randint(0, 360))
             random_item.spawn()
 
-        kinect.take_photo("rgb", "_ob")
-        kinect.take_photo("depth", "_ob")
+        # taking photo of obstructed view on target
+        kinect.take_photo(kind="rgb",
+                          additional_text="_ob")
+        kinect.take_photo(kind="depth",
+                          additional_text="_ob")
 
         obstructor.despawn()
 
-        kinect.take_photo("rgb", "_un")
-        kinect.take_photo("depth", "_un")
+        # taking photo of unobstructed view on target
+        kinect.take_photo(kind="rgb",
+                          additional_text="_un")
+        kinect.take_photo(kind="depth",
+                          additional_text="_un")
 
         kinect.index += 1
 

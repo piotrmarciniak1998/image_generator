@@ -20,7 +20,7 @@ if __name__ == "__main__":
         print("FileNotFoundError: You need to execute convert_obj_to_urdf.py before executing this script!")
         quit()
 
-    kinect = Camera("kinect", "/kinect/color/image_raw", "/kinect/depth/image_rect_raw", 2)
+    kinect = Camera("kinect", "/kinect/color/image_raw", "/kinect/depth/image_rect_raw")
     rospy.init_node("kinect_subscriber", anonymous=True)
 
     mug = items["mug"][2]
@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     pos = mug.get_pose()
     for i in range(0, 360, 10):
-        kinect.move(pos, i)
+        kinect.move(pos, 2, i)
         kinect.take_photo("rgb")
         kinect.take_photo("depth")
 

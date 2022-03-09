@@ -38,13 +38,19 @@ data about objects in the project. **This script should be executed to ensure th
 cd ~/catkin_ws/src/image_generator/scripts
 python3 convert_obj_to_urdf.py
 ```
-2. Use chosen `roslaunch` file:
+2. Use a `roslaunch` file (main file is `kinect.launch` for now):
 ```
 cd ~/catkin_ws
 source devel/setup.bash
-roslaunch image_generator image_generator.launch
+roslaunch image_generator kinect.launch
 ```
-3. Use chosen `rosrun` script in a separate tab:
+3. Use the image saving server (necessary for `generator.py`):
+```
+cd ~/catkin_ws
+source devel/setup.bash
+rosrun image_generator image_saver_server.py
+```
+4. Use a `rosrun` script (main script is `generator.py`):
 ```
 cd ~/catkin_ws
 source devel/setup.bash
