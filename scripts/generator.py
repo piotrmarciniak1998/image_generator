@@ -16,7 +16,7 @@ from utils import position_on_item, get_average_x_y
 TABLE_CATEGORY = "table"  # label of table category
 TARGET_CATEGORY = "mug"  # label of target category
 TARGET_NUMBER = 0  # index of chosen item in target category
-RANDOM_ITEMS = 10  # how many unrelated items to spawn on the table
+RANDOM_ITEMS = 5  # how many unrelated items to spawn on the table
 MIN_CAMERA_DISTANCE = 1.5  # define the closest distance of the photo
 MAX_CAMERA_DISTANCE = 3.0  # define the furthest distance of the photo
 NUMBER_OF_ITERATIONS = 100  # define number of scenes to generate
@@ -68,7 +68,10 @@ if __name__ == "__main__":
         # TODO:
         #  1. check if spawning the obstructor in the way of camera works
         #  2. add randomization in the future
-        obstructor_position = (get_average_x_y(target.get_pose(), kinect.get_pose()), table.z_span)
+        obstructor_x, obstructor_y = get_average_x_y(target.get_pose(), kinect.get_pose())
+        obstructor_z = table.z_span
+        obstructor_position = obstructor_x, obstructor_y, obstructor_z
+        print(obstructor_position)
         obstructor.normalize_position(pose=obstructor_position,
                                       angle=randint(0, 360))
         obstructor.spawn()
