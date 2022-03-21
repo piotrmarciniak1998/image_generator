@@ -15,8 +15,8 @@ from utils import position_on_item, get_average_x_y
 
 TABLE_CATEGORY = "table"  # label of table category
 TARGET_CATEGORY = "mug"  # label of target category
-TARGET_NUMBER = 0  # index of chosen item in target category
-RANDOM_ITEMS = 5  # how many unrelated items to spawn on the table
+TARGET_NUMBER = 2  # index of chosen item in target category
+RANDOM_ITEMS =0  # how many unrelated items to spawn on the table
 MIN_CAMERA_DISTANCE = 1.5  # define the closest distance of the photo
 MAX_CAMERA_DISTANCE = 3.0  # define the furthest distance of the photo
 NUMBER_OF_ITERATIONS = 100  # define number of scenes to generate
@@ -49,7 +49,7 @@ if __name__ == "__main__":
         target = items[TARGET_CATEGORY][TARGET_NUMBER]
         target.normalize_position(pose=position_on_item(table),
                                   angle=randint(0, 360))
-        target.spawn()
+
 
         # moving camera to different angles, pointed towards the mug
         kinect.move(pose=target.get_pose(),
@@ -74,7 +74,7 @@ if __name__ == "__main__":
         print(obstructor_position)
         obstructor.normalize_position(pose=obstructor_position,
                                       angle=randint(0, 360))
-        obstructor.spawn()
+
 
         # spawning random items on the scene
         random_items = []
@@ -90,25 +90,36 @@ if __name__ == "__main__":
             random_item.normalize_position(pose=position_on_item(table),
                                            angle=randint(0, 360))
             random_item.spawn()
+        rospy.sleep(0.5)
 
-        # taking photo of obstructed view on target
-        kinect.take_photo(kind="rgb",
-                          additional_text="_ob")
-        kinect.take_photo(kind="depth",
-                          additional_text="_ob")
+        # taking photo of scene without obstructor and target
+        kinect.take_photo(kind="depth",  save=False, additional_text="_em")
+        obstructor.spawn()
+        rospy.sleep(0.5)
+
+        # taking photo of scene only with obstructor
+        kinect.take_photo(kind="depth", save=False, additional_text="_ob")
 
         obstructor.despawn()
+        target.spawn()
+        rospy.sleep(0.5)
 
         # taking photo of unobstructed view on target
-        kinect.take_photo(kind="rgb",
-                          additional_text="_un")
-        kinect.take_photo(kind="depth",
-                          additional_text="_un")
+        kinect.take_photo(kind="rgb", save=True, additional_text="_unt")
+        kinect.take_photo(kind="depth", save=True, additional_text="_unt")
+
+        obstructor.spawn()
+        rospy.sleep(0.5)
+
+        # taking photo of obstructed view on target
+        kinect.take_photo(kind="rgb", save=True, additional_text="_obt")
+        kinect.take_photo(kind="depth", save=True, additional_text="_obt")
 
         kinect.index += 1
 
         # despawning all the items on the scene
         for random_item in random_items:
             random_item.despawn()
+        obstructor.despawn()
         target.despawn()
         table.despawn()
