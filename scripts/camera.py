@@ -8,8 +8,8 @@ from gazebo_msgs.msg import ModelState
 from gazebo_msgs.srv import SetModelState
 from sensor_msgs.msg import Image
 from image_generator.srv import ImageToSave
-
-
+import cv2
+from cv_bridge import CvBridge
 class Camera:
     def __init__(self, name, topic_rgb, topic_depth, pose=Pose(), reference_frame="world", index=0, distance=2):
         self.name = name
@@ -22,7 +22,14 @@ class Camera:
                       "depth": Image()}
         self.is_ready = {"rgb": False,
                          "depth": False}
-
+        # empty scene
+        self.img_em = Image()
+        # unobstructed target
+        self.img_unt = Image()
+        # obstructed target
+        self.img_obt = Image()
+        # obstructor
+        self.img_ob = Image()
         rospy.Subscriber(topic_rgb, Image, self.image_rgb_callback)
         rospy.Subscriber(topic_depth, Image, self.image_depth_callback)
 
@@ -57,16 +64,66 @@ class Camera:
             self.is_ready["rgb"] = False
             self.is_ready["depth"] = False
 
-    def take_photo(self, kind, additional_text=""):
-        rospy.wait_for_service("/image_generator/image_saver")
-        while not self.is_ready[kind]:
-            pass
-        try:
-            image_saver = rospy.ServiceProxy("/image_generator/image_saver", ImageToSave)
-            response = image_saver(filename=f"{kind}{additional_text}",
-                                   index=self.index,
-                                   image=self.image[kind])
-        except rospy.ServiceException as e:
-            print("Service call failed: %s" % e)
+    def diffrence_calculating(self, img_1, img_2):
+        diff = 0
+        bridge = CvBridge()
+        img_1.encoding = "32FC1"
+        img1 = bridge.imgmsg_to_cv2(img_1, desired_encoding='passthrough')
+        img_2.encoding = "32FC1"
+        img2 = bridge.imgmsg_to_cv2(img_2, desired_encoding='passthrough')
+        for i in range(img1.shape[0]):
+            for j in range(img1.shape[1]):
+                if img1[i][j] != img2[i][j]:
+                    diff += 1
+        return diff
+    def take_photo(self, kind, save, additional_text=""):
+        if save == True and kind == 'depth':
+            rospy.wait_for_service("/image_generator/image_saver")
+            while not self.is_ready[kind]:
+                pass
+            try:
+                if additional_text == "_unt":
+                    self.img_unt = self.image[kind]
+                    image_saver = rospy.ServiceProxy("/image_generator/image_saver", ImageToSave)
+                    response = image_saver(filename=f"{kind}{additional_text}",
+                                           index=self.index,
+                                           image=self.image[kind])
+                if additional_text == "_obt":
+                    self.img_obt = self.image[kind]
+                    image_saver = rospy.ServiceProxy("/image_generator/image_saver", ImageToSave)
+                    # the number of pixels of the unobstructed target
+                    tar_obj_pix = self.diffrence_calculating(self.img_unt, self.img_em)
+                    # the number of pixels of covered part of target
+                    obs_tar_pix = self.diffrence_calculating(self.img_obt, self.img_ob)
+
+                    occlusion = round((tar_obj_pix - obs_tar_pix) / tar_obj_pix * 100, 1)
+                    print(occlusion)
+                    response = image_saver(filename=f"{kind}{additional_text}_{occlusion}%",
+                                           index=self.index,
+                                           image=self.image[kind])
+            except rospy.ServiceException as e:
+                print("Service call failed: %s" % e)
+            else:
+                return response
+
+        if save == True and kind == 'rgb':
+            rospy.wait_for_service("/image_generator/image_saver")
+            while not self.is_ready[kind]:
+                pass
+            try:
+                image_saver = rospy.ServiceProxy("/image_generator/image_saver", ImageToSave)
+                response = image_saver(filename=f"{kind}{additional_text}",
+                                       index=self.index,
+                                       image=self.image[kind])
+            except rospy.ServiceException as e:
+                print("Service call failed: %s" % e)
+            else:
+                return response
+
         else:
-            return response
+            if additional_text == "_em":
+                self.img_em = self.image[kind]
+
+            if additional_text == "_ob":
+                self.img_ob = self.image[kind]
+
