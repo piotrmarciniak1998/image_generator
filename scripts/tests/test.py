@@ -3,12 +3,7 @@
 import rospy
 import os
 import pickle
-from geometry_msgs.msg import Pose, Point, Quaternion
-from gazebo_msgs.srv import SpawnModel
-from item import Item
 from camera import Camera
-from random import randint
-
 
 if __name__ == "__main__":
     abs_path = os.path.abspath("./src/image_generator/")

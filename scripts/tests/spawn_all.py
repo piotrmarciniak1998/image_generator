@@ -5,7 +5,7 @@ import os
 import pickle
 from geometry_msgs.msg import Pose, Point, Quaternion
 from gazebo_msgs.srv import SpawnModel
-from item import Item
+from scripts.sources.item import Item
 from random import randint
 
 

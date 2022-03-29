@@ -1,10 +1,8 @@
-
-from PIL import Image, ImageChops
 import os
 import cv2
-number_of_picture = 20
-abs_path = os.path.abspath("../../images")
-print(abs_path)
+from PIL import Image, ImageChops
+
+
 def diffrence_calculating(img1, img2):
     diff = 0
     for i in range(img1.shape[0]):
@@ -13,6 +11,8 @@ def diffrence_calculating(img1, img2):
                 diff += 1
     return diff
 
+number_of_picture = 20
+abs_path = os.path.abspath("../../images")
 for i in range(number_of_picture):
     # empty scene
     img_em = cv2.imread(f'{abs_path}/{i}_depth_em.png', 0)

@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as ET
 import os
 import pickle
-from item import Item
+from sources.item import Item
 
 
 # This script converts any obj files inside ../resources/obj_files/ to urdf files in ../resources/urdf_files, based on
@@ -48,6 +48,7 @@ root = tree.getroot()
 items = {}
 category_list = [i for i in os.listdir(input_path) if os.path.isdir(os.path.join(input_path, i))]
 
+print("Suggested scales: 5-10 for the tables, 1 for the rest")
 for category in category_list:
     items[category] = []
 

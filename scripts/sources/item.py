@@ -3,7 +3,7 @@ from math import radians, cos, sin
 from tf.transformations import quaternion_from_euler
 from geometry_msgs.msg import Pose, Point, Quaternion, Twist
 from gazebo_msgs.msg import ModelState
-from gazebo_msgs.srv import SpawnModel, DeleteModel, SetModelState
+from gazebo_msgs.srv import SpawnModel, DeleteModel, SetModelState, GetModelState
 
 
 class Item:
@@ -28,9 +28,13 @@ class Item:
         self.y_span = y_max - y_min
         self.z_span = z_max - z_min
 
-        self.spawned = False
+        self.used = False
 
     def normalize_position(self, pose=(0, 0, 0), angle=0):
+        if pose == (0, 0, -10):
+            self.used = False
+        else:
+            self.used = True
         q = quaternion_from_euler(radians(90), 0, radians(angle))
         self.pose = Pose(position=Point(pose[0] - ((self.x_min + self.x_max) * cos(radians(angle)) / 2 +
                                                    (self.y_min + self.y_max) * sin(radians(angle)) / 2),
@@ -52,40 +56,35 @@ class Item:
         return (self.pose.position.x, self.pose.position.y, self.pose.position.z)
 
     def spawn(self):
-        if not self.spawned:
-            rospy.wait_for_service("/gazebo/spawn_urdf_model")
-            try:
-                spawner = rospy.ServiceProxy("/gazebo/spawn_urdf_model", SpawnModel)
-                spawner(model_name=self.name,
-                        model_xml=open(self.urdf_path, 'r').read(),
-                        robot_namespace=self.category,
-                        initial_pose=self.pose,
-                        reference_frame=self.reference_frame)
-            except rospy.ServiceException as e:
-                print("Service call failed: ", e)
-            else:
-                self.spawned = True
+        rospy.wait_for_service("/gazebo/spawn_urdf_model")
+        try:
+            spawner = rospy.ServiceProxy("/gazebo/spawn_urdf_model", SpawnModel)
+            spawner(model_name=self.name,
+                    model_xml=open(self.urdf_path, 'r').read(),
+                    robot_namespace=self.category,
+                    initial_pose=self.pose,
+                    reference_frame=self.reference_frame)
+        except rospy.ServiceException as e:
+            print("Service call failed: ", e)
 
     def despawn(self):
-        if self.spawned:
-            rospy.wait_for_service("/gazebo/delete_model")
-            try:
-                deleter = rospy.ServiceProxy("/gazebo/delete_model", DeleteModel)
-                deleter(model_name=self.name)
-            except rospy.ServiceException as e:
-                print("Service call failed: ", e)
-            else:
-                self.spawned = False
+        rospy.wait_for_service("/gazebo/delete_model")
+        try:
+            deleter = rospy.ServiceProxy("/gazebo/delete_model", DeleteModel)
+            deleter(model_name=self.name)
+        except rospy.ServiceException as e:
+            print("Service call failed: ", e)
 
     def move(self, pose=(0, 0, 0), angle=0):
-        if self.spawned:
-            self.normalize_position(pose=pose, angle=angle)
-            rospy.wait_for_service("/gazebo/set_model_state")
-            try:
-                set_model_state = rospy.ServiceProxy("gazebo/set_model_state", SetModelState)
-                set_model_state(model_state=ModelState(model_name=self.name,
-                                                       pose=self.pose,
-                                                       twist=Twist(),
-                                                       reference_frame=self.reference_frame))
-            except rospy.ServiceException as e:
-                print("Service call failed: ", e)
+        self.normalize_position(pose=pose, angle=angle)
+        rospy.wait_for_service("/gazebo/set_model_state")
+        try:
+            set_model_state = rospy.ServiceProxy("gazebo/set_model_state", SetModelState)
+            response = set_model_state(model_state=ModelState(model_name=self.name,
+                                                              pose=self.pose,
+                                                              twist=Twist(),
+                                                              reference_frame=self.reference_frame))
+        except rospy.ServiceException as e:
+            print("Service call failed: ", e)
+        else:
+            return response
