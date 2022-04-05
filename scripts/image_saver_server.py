@@ -24,6 +24,8 @@ def handle_image_to_save(req):
 
     if 'depth' in req.filename:
         cv2_img = cv2_img * 63
+    else:
+        cv2_img = cv2.cvtColor(cv2_img, cv2.COLOR_BGR2GRAY)
     os.makedirs(os.path.abspath("./src/image_generator/images"), exist_ok=True)
     cv2.imwrite(os.path.abspath(f"./src/image_generator/images/{req.index}_{req.filename}.png"), cv2_img)
     return ImageToSaveResponse(True)
