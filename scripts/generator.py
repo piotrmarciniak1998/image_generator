@@ -9,7 +9,7 @@ from random import randint, randrange, uniform
 from time import perf_counter
 from sources.item import Item
 from sources.camera import Camera
-from sources.utils import position_on_item, calculate_occlusion
+from sources.utils import position_on_item, calculate_occlusion, adding_occulison
 
 
 TABLE_CATEGORY = "table"  # label of table category
@@ -18,7 +18,7 @@ TARGET_NUMBER = 2  # index of chosen item in target category
 RANDOM_ITEMS = 5  # how many unrelated items to spawn on the table
 MIN_CAMERA_DISTANCE = 2.0  # define the closest distance of the photo
 MAX_CAMERA_DISTANCE = 3.0  # define the furthest distance of the photo
-NUMBER_OF_ITERATIONS = 100  # define number of scenes to generate
+NUMBER_OF_ITERATIONS = 1000  # define number of scenes to generate
 
 
 if __name__ == "__main__":
@@ -130,28 +130,14 @@ if __name__ == "__main__":
         msg_obstructor = kinect.take_photo(kind="depth", save=False)
         rospy.sleep(0.2)
 
-        obstructor.move(pose=(0, 0, -10))
         target.move(pose=target_pose,
                     angle=target_angle)
-
-        rospy.sleep(0.2)
-        msg_target = kinect.take_photo(kind="depth", save=False)
-        rospy.sleep(0.2)
-
-        obstructor.move(pose=obstructor_pose,
-                        angle=obstructor_angle)
-
-        rospy.sleep(0.2)
-        msg_target_obstructor = kinect.take_photo(kind="depth", save=False)
-        rospy.sleep(0.2)
-
-        occlusion = calculate_occlusion(msg_empty, msg_obstructor, msg_target, msg_target_obstructor)
 
         # taking photo of obstructed view on target
         rospy.sleep(0.2)
         # rgb photos are not necessary for the project
-        # kinect.take_photo(kind="rgb", save=True, additional_text=f"_o_{occlusion}")
-        kinect.take_photo(kind="depth", save=True, additional_text=f"_o_{occlusion}")
+        kinect.take_photo(kind="rgb", save=True, additional_text=f"_o")
+        msg_target_obstructor = kinect.take_photo(kind="depth", save=True, additional_text=f"_o")
         rospy.sleep(0.2)
 
         obstructor.move(pose=(0, 0, -10))
@@ -159,12 +145,15 @@ if __name__ == "__main__":
         # taking photo of unobstructed view on target
         rospy.sleep(0.2)
         # rgb photos are not necessary for the project
-        # kinect.take_photo(kind="rgb", save=True, additional_text=f"_u_{occlusion}")
-        kinect.take_photo(kind="depth", save=True, additional_text=f"_u_{occlusion}")
+        kinect.take_photo(kind="rgb", save=True, additional_text=f"_u")
+        msg_target = kinect.take_photo(kind="depth", save=True, additional_text=f"_u")
         rospy.sleep(0.2)
 
-        kinect.index += 1
 
+        occlusion = calculate_occlusion(msg_empty, msg_obstructor, msg_target, msg_target_obstructor)
+        adding_occulison(kinect.index, occlusion)
+
+        kinect.index += 1
         # moving all the items from the scene
         table.move(pose=(0, 0, -10))
         for used_item in used_items:

@@ -3,7 +3,7 @@ import numpy as np
 from random import uniform
 from math import sqrt
 from cv_bridge import CvBridge
-
+import os
 
 def position_on_item(item, colliders=[], target_pose=None, camera_pose=None, tolerance=0.9, is_obstructor=False):
     x_min, x_max, y_min, y_max, height = item.get_bounding_box_of_normalized_item()
@@ -73,3 +73,12 @@ def calculate_occlusion(msg_empty, msg_obstructor, msg_target, msg_target_obstru
     obs_pix = calculate_difference(msg_target_obstructor, msg_obstructor)
     occlusion = abs(int(round((tar_pix - obs_pix) / tar_pix * 100, 0)))
     return occlusion
+
+def adding_occulison(index, occlusion):
+    photo_kind = ['depth_u', 'depth_o', 'rgb_u', 'rgb_o']
+    for kind in photo_kind:
+        try:
+            os.rename(f"./src/image_generator/images/{index}_{kind}.png",
+                      f"./src/image_generator/images/{index}_{kind}_{occlusion}.png")
+        except FileNotFoundError:
+            pass
