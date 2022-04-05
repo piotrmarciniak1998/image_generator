@@ -3,7 +3,7 @@
 import rospy
 import cv2
 import numpy as np
-from math import radians, cos, sin
+from math import radians, cos, sin, tan
 from tf.transformations import quaternion_from_euler
 from geometry_msgs.msg import Pose, Point, Quaternion, Twist
 from gazebo_msgs.msg import ModelState
@@ -40,12 +40,12 @@ class Camera:
         self.image["depth"] = msg
         self.is_ready["depth"] = True
 
-    def move(self, pose, distance, angle):
-        q = quaternion_from_euler(0, 0, radians(angle + 180))
+    def move(self, pose=Pose(), distance=2, angle_x=0, angle_z=0):
+        q = quaternion_from_euler(radians(angle_x), 0, radians(angle_z + 180))
         self.distance = distance
-        self.pose = Pose(position=Point(pose[0] + self.distance * cos(radians(angle)),
-                                        pose[1] + self.distance * sin(radians(angle)),
-                                        pose[2]),
+        self.pose = Pose(position=Point(pose[0] + self.distance * cos(radians(angle_z)),
+                                        pose[1] + self.distance * sin(radians(angle_z)),
+                                        pose[2] + self.distance * tan(radians(angle_x))),
                          orientation=Quaternion(q[0], q[1], q[2], q[3]))
         rospy.wait_for_service("/gazebo/set_model_state")
         try:

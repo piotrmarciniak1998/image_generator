@@ -16,8 +16,10 @@ TABLE_CATEGORY = "table"  # label of table category
 TARGET_CATEGORY = "mug"  # label of target category
 TARGET_NUMBER = 2  # index of chosen item in target category
 RANDOM_ITEMS = 5  # how many unrelated items to spawn on the table
-MIN_CAMERA_DISTANCE = 2.0  # define the closest distance of the photo
-MAX_CAMERA_DISTANCE = 3.0  # define the furthest distance of the photo
+MIN_CAMERA_DISTANCE = 2.0  # define the closest distance of the camera
+MAX_CAMERA_DISTANCE = 3.0  # define the furthest distance of the camera
+MIN_CAMERA_ANGLE = -5  # define mininal angle of the camera (looking up)
+MAX_CAMERA_ANGLE = 15  # define maximal angle of the camera (looking down)
 NUMBER_OF_ITERATIONS = 1000  # define number of scenes to generate
 
 
@@ -89,7 +91,8 @@ if __name__ == "__main__":
         # moving camera to different angles, pointed towards the mug
         kinect.move(pose=target_pose,
                     distance=uniform(MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE),
-                    angle=randint(0, 360))
+                    angle_x=randint(MIN_CAMERA_ANGLE, MAX_CAMERA_ANGLE),
+                    angle_z=randint(0, 360))
 
         # spawning obstructing item
         obstructor_category = categories[randrange(len(categories))]
@@ -135,7 +138,6 @@ if __name__ == "__main__":
 
         # taking photo of obstructed view on target
         rospy.sleep(0.2)
-        # rgb photos are not necessary for the project
         kinect.take_photo(kind="rgb", save=True, additional_text=f"_o")
         msg_target_obstructor = kinect.take_photo(kind="depth", save=True, additional_text=f"_o")
         rospy.sleep(0.2)
@@ -144,11 +146,9 @@ if __name__ == "__main__":
 
         # taking photo of unobstructed view on target
         rospy.sleep(0.2)
-        # rgb photos are not necessary for the project
         kinect.take_photo(kind="rgb", save=True, additional_text=f"_u")
         msg_target = kinect.take_photo(kind="depth", save=True, additional_text=f"_u")
         rospy.sleep(0.2)
-
 
         occlusion = calculate_occlusion(msg_empty, msg_obstructor, msg_target, msg_target_obstructor)
         adding_occulison(kinect.index, occlusion)
