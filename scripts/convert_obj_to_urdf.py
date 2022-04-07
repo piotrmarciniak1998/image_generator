@@ -63,7 +63,7 @@ for category in category_list:
     os.makedirs(output_path + "/" + category, exist_ok=True)  # Create directories to contains converted urdfs.
 
     obj_files = [os.path.join(root, name)
-                 for root, dirs, files in os.walk(input_path + "/" + category + "/")
+                 for root, dirs, files in os.walk(f"{input_path}/{category}/")
                  for name in files
                  if name.endswith(".obj")]  # Find all obj files
 

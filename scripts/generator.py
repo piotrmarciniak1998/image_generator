@@ -7,9 +7,10 @@ from geometry_msgs.msg import Pose, Point, Quaternion
 from gazebo_msgs.srv import SpawnModel
 from random import randint, randrange, uniform
 from time import perf_counter
+from datetime import datetime
 from sources.item import Item
 from sources.camera import Camera
-from sources.utils import position_on_item, calculate_occlusion, adding_occulison
+from sources.utils import position_on_item, calculate_occlusion, add_occlusion, display_metrics
 
 
 TABLE_CATEGORY = "table"  # label of table category
@@ -18,7 +19,7 @@ TARGET_NUMBER = 2  # index of chosen item in target category
 RANDOM_ITEMS = 5  # how many unrelated items to spawn on the table
 MIN_CAMERA_DISTANCE = 2.0  # define the closest distance of the camera
 MAX_CAMERA_DISTANCE = 3.0  # define the furthest distance of the camera
-MIN_CAMERA_ANGLE = -5  # define mininal angle of the camera (looking up)
+MIN_CAMERA_ANGLE = -5  # define minimal angle of the camera (looking up)
 MAX_CAMERA_ANGLE = 15  # define maximal angle of the camera (looking down)
 NUMBER_OF_ITERATIONS = 1000  # define number of scenes to generate
 
@@ -27,10 +28,11 @@ if __name__ == "__main__":
     print("1. Initializing.")
 
     abs_path = os.path.abspath("./src/image_generator/")
+    images_path = f"{abs_path}/images/{datetime.now()}"
 
     # loading a pickle created by convert_obj_to_urdf.py script
     try:
-        items = pickle.load(open(abs_path + "/resources/pickle/items.pickle", "rb"))
+        items = pickle.load(open(f"{abs_path}/resources/pickle/items.pickle", "rb"))
     except FileNotFoundError:
         print("FileNotFoundError: You need to execute convert_obj_to_urdf.py before executing this script!")
         quit()
@@ -64,19 +66,10 @@ if __name__ == "__main__":
 
     time_init = perf_counter()
     for iteration in range(NUMBER_OF_ITERATIONS):
-        # metrics displayed in terminal
-        average_time = (perf_counter() - time_init) / (iteration + 0.000001)
-        estimated_time = int(round(average_time * (NUMBER_OF_ITERATIONS - iteration), 0))
-        estimated_seconds = estimated_time % 60
-        estimated_minutes = (estimated_time // 60) % 60
-        estimated_hours = estimated_time // 3600
-        completion_percentage = round(iteration / NUMBER_OF_ITERATIONS * 100, 1)
-        if estimated_hours > 0:
-            print(f"{completion_percentage}% - {estimated_hours}h, {estimated_minutes}m, {estimated_seconds}s left.")
-        elif estimated_minutes > 0:
-            print(f"{completion_percentage}% - {estimated_minutes}m, {estimated_seconds}s left.")
-        else:
-            print(f"{completion_percentage}% - {estimated_seconds}s left.")
+        # printing completion percentage and estimated remaining time
+        print(display_metrics(current_iteration=iteration,
+                              target_iterations=NUMBER_OF_ITERATIONS,
+                              average_time=(perf_counter() - time_init) / (iteration + 0.000001)))
 
         # spawning random table from urdf files
         table_number = randrange(len(items[TABLE_CATEGORY]))
@@ -91,7 +84,7 @@ if __name__ == "__main__":
         # moving camera to different angles, pointed towards the mug
         kinect.move(pose=target_pose,
                     distance=uniform(MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE),
-                    angle_x=randint(MIN_CAMERA_ANGLE, MAX_CAMERA_ANGLE),
+                    angle_y=randint(MIN_CAMERA_ANGLE, MAX_CAMERA_ANGLE),
                     angle_z=randint(0, 360))
 
         # spawning obstructing item
@@ -123,14 +116,14 @@ if __name__ == "__main__":
 
         # calculating obstruction of target based on comparing different images
         rospy.sleep(0.2)
-        msg_empty = kinect.take_photo(kind="depth", save=False)
+        msg_empty = kinect.take_photo(save=False)
         rospy.sleep(0.2)
 
         obstructor.move(pose=obstructor_pose,
                         angle=obstructor_angle)
 
         rospy.sleep(0.2)
-        msg_obstructor = kinect.take_photo(kind="depth", save=False)
+        msg_obstructor = kinect.take_photo(save=False)
         rospy.sleep(0.2)
 
         target.move(pose=target_pose,
@@ -138,23 +131,32 @@ if __name__ == "__main__":
 
         # taking photo of obstructed view on target
         rospy.sleep(0.2)
-        kinect.take_photo(kind="rgb", save=True, additional_text=f"_o")
-        msg_target_obstructor = kinect.take_photo(kind="depth", save=True, additional_text=f"_o")
+        kinect.take_photo(dirname=images_path,
+                          filename=f"{iteration}_rgb_o",
+                          save=True)
+        msg_target_obstructor = kinect.take_photo(dirname=images_path,
+                                                  filename=f"{iteration}_depth_o",
+                                                  save=True)
         rospy.sleep(0.2)
 
         obstructor.move(pose=(0, 0, -10))
 
         # taking photo of unobstructed view on target
         rospy.sleep(0.2)
-        kinect.take_photo(kind="rgb", save=True, additional_text=f"_u")
-        msg_target = kinect.take_photo(kind="depth", save=True, additional_text=f"_u")
+        kinect.take_photo(dirname=images_path,
+                          filename=f"{iteration}_rgb_u",
+                          save=True)
+        msg_target = kinect.take_photo(dirname=images_path,
+                                       filename=f"{iteration}_depth_u",
+                                       save=True)
         rospy.sleep(0.2)
 
         occlusion = calculate_occlusion(msg_empty, msg_obstructor, msg_target, msg_target_obstructor)
-        adding_occulison(kinect.index, occlusion)
+        add_occlusion(index=iteration,
+                      dirname=images_path,
+                      occlusion=occlusion)
 
-        kinect.index += 1
-        # moving all the items from the scene
+        # moving all the items away from the scene
         table.move(pose=(0, 0, -10))
         for used_item in used_items:
             used_item.move(pose=(0, 0, -10))

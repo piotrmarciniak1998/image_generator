@@ -76,11 +76,26 @@ def calculate_occlusion(msg_empty, msg_obstructor, msg_target, msg_target_obstru
     return occlusion
 
 
-def adding_occulison(index, occlusion):
-    photo_kind = ['depth_u', 'depth_o', 'rgb_u', 'rgb_o']
-    for kind in photo_kind:
+def add_occlusion(index, dirname, occlusion, photo_kinds=None):
+    if photo_kinds is None:
+        photo_kinds = ['depth_u', 'depth_o', 'rgb_u', 'rgb_o']
+    for kind in photo_kinds:
         try:
-            os.rename(f"./src/image_generator/images/{index}_{kind}.png",
-                      f"./src/image_generator/images/{index}_{kind}_{occlusion}.png")
+            os.rename(f"{dirname}/{index}_{kind}.png",
+                      f"{dirname}/{index}_{kind}_{occlusion}.png")
         except FileNotFoundError:
             pass
+
+
+def display_metrics(current_iteration, target_iterations, average_time):
+    estimated_time = int(round(average_time * (target_iterations - current_iteration), 0))
+    estimated_seconds = estimated_time % 60
+    estimated_minutes = (estimated_time // 60) % 60
+    estimated_hours = estimated_time // 3600
+    completion_percentage = round(current_iteration / target_iterations * 100, 1)
+    if estimated_hours > 0:
+        return f"{completion_percentage}% - {estimated_hours}h, {estimated_minutes}m, {estimated_seconds}s left."
+    elif estimated_minutes > 0:
+        return f"{completion_percentage}% - {estimated_minutes}m, {estimated_seconds}s left."
+    else:
+        return f"{completion_percentage}% - {estimated_seconds}s left."

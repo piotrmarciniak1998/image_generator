@@ -14,13 +14,12 @@ from cv_bridge import CvBridge
 
 
 class Camera:
-    def __init__(self, name, topic_rgb, topic_depth, pose=Pose(), reference_frame="world", index=0, distance=2):
+    def __init__(self, name, topic_rgb, topic_depth, pose=Pose(), reference_frame="world", distance=2):
         self.name = name
         self.pose = pose
         self.reference_frame = reference_frame
 
         self.distance = distance
-        self.index = index
         self.image = {"rgb": Image(),
                       "depth": Image()}
         self.is_ready = {"rgb": False,
@@ -40,12 +39,12 @@ class Camera:
         self.image["depth"] = msg
         self.is_ready["depth"] = True
 
-    def move(self, pose=Pose(), distance=2, angle_x=0, angle_z=0):
-        q = quaternion_from_euler(radians(angle_x), 0, radians(angle_z + 180))
+    def move(self, pose=Pose(), distance=2, angle_y=0, angle_z=0):
+        q = quaternion_from_euler(0, radians(angle_y), radians(angle_z + 180))
         self.distance = distance
         self.pose = Pose(position=Point(pose[0] + self.distance * cos(radians(angle_z)),
                                         pose[1] + self.distance * sin(radians(angle_z)),
-                                        pose[2] + self.distance * tan(radians(angle_x))),
+                                        pose[2] + self.distance * tan(radians(angle_y))),
                          orientation=Quaternion(q[0], q[1], q[2], q[3]))
         rospy.wait_for_service("/gazebo/set_model_state")
         try:
@@ -60,7 +59,14 @@ class Camera:
             self.is_ready["rgb"] = False
             self.is_ready["depth"] = False
 
-    def take_photo(self, kind="depth", save=True, additional_text=""):
+    def take_photo(self, dirname="", filename="depth", save=True):
+        if "depth" in filename:
+            kind = "depth"
+        elif "rgb" in filename:
+            kind = "rgb"
+        else:
+            return None
+
         if save:
             rospy.wait_for_service("/image_generator/image_saver")
             while not self.is_ready[kind]:
@@ -68,8 +74,8 @@ class Camera:
 
             try:
                 image_saver = rospy.ServiceProxy("/image_generator/image_saver", ImageToSave)
-                image_saver(filename=f"{kind}{additional_text}",
-                            index=self.index,
+                image_saver(dirname=dirname,
+                            filename=filename,
                             image=self.image[kind])
             except rospy.ServiceException as e:
                 print("Service call failed: %s" % e)

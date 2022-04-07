@@ -1,11 +1,11 @@
-# 👨‍💻 Project: image_generator
+# 🎉 Project `image_generator` is released!
+As of 07.04.2022 the project is officially released and no further development is planned at this moment.
+
+# 👨‍💻 Description
 Project for generating images used as a data set. The main goal is to create random scenes including objects placed on 
 the table. Each scene is then used to take photo of obstructed and unobstructed view on the mug (target), which are also 
-labeled with % of obstruction. Obstructing objects are randomized.
-# 🚧 TODO
-1. Improvements to code quality.
-2. Improvements to randomization of positions and rotations.
-3. Adding different camera angles.
+labeled with percentage of obstruction. Obstructing objects are randomized.
+
 # 💾 Installation through bash
 ```
 cd ~/catkin_ws/src
@@ -14,6 +14,7 @@ cd ~/catkin_ws
 source devel/setup.bash
 catkin_make
 ```
+
 # 🔨 Components 
 `.launch` files: 
 * `image_generator.launch` - main Gazebo world.
@@ -29,7 +30,30 @@ data about objects in the project. **This script should be executed to ensure th
 
 `.py` services:
 * `image_saver_server.py` - saves image with specified filename and with given index
+
 # ▶️ Usage
+**Requirements**
+* Ubuntu 20.04 LTS Operating System
+* ROS Noetic Ninjemys
+
+**Modifying the scene**
+
+Additional `.obj models` can be added or exchanged in `image_generator/resources/obj_files`. After each change, 
+`convert_obj_to_urdf.py` should be executed (1. below).
+
+**Output**
+
+From 1 scene the program produces 4 photos labeled with:
+* iteration
+* type (depth / rgb)
+* confirmation if the current photo is obstructed or not (o - obstructed, u - unobstructed)
+* percentage of obstruction
+
+Example:
+
+`149_depth_o_36.png` is obstructed depth image of 149th scene, on which the target is obstructed by 36%.
+
+**How to start it up**
 1. It is recommended to execute `convert_obj_to_urdf.py`:
 ```
 cd ~/catkin_ws/src/image_generator/scripts
@@ -53,3 +77,4 @@ cd ~/catkin_ws
 source devel/setup.bash
 rosrun image_generator generator.py
 ```
+
