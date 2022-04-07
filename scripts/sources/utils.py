@@ -87,15 +87,35 @@ def add_occlusion(index, dirname, occlusion, photo_kinds=None):
             pass
 
 
-def display_metrics(current_iteration, target_iterations, average_time):
+def display_metrics(current_iteration, target_iterations, time_start, time_now):
+    average_time = (time_now - time_start) / (current_iteration + 0.000001)
+
+    completion_percentage = round(current_iteration / target_iterations * 100, 1)
+
+    running_time = int(round(time_now - time_start, 0))
+    running_seconds = running_time % 60
+    running_minutes = (running_time // 60) % 60
+    running_hours = running_time // 3600
+    if running_hours > 0:
+        running_time_text = f"{running_hours}h, {running_minutes}m, {running_seconds}s"
+    elif running_minutes > 0:
+        running_time_text = f"{running_minutes}m, {running_seconds}s"
+    else:
+        running_time_text = f"{running_seconds}s"
+
     estimated_time = int(round(average_time * (target_iterations - current_iteration), 0))
     estimated_seconds = estimated_time % 60
     estimated_minutes = (estimated_time // 60) % 60
     estimated_hours = estimated_time // 3600
-    completion_percentage = round(current_iteration / target_iterations * 100, 1)
     if estimated_hours > 0:
-        return f"{completion_percentage}% - {estimated_hours}h, {estimated_minutes}m, {estimated_seconds}s left."
+        estimated_time_text = f"{estimated_hours}h, {estimated_minutes}m, {estimated_seconds}s"
     elif estimated_minutes > 0:
-        return f"{completion_percentage}% - {estimated_minutes}m, {estimated_seconds}s left."
+        estimated_time_text = f"{estimated_minutes}m, {estimated_seconds}s"
     else:
-        return f"{completion_percentage}% - {estimated_seconds}s left."
+        estimated_time_text = f"{estimated_seconds}s"
+
+    return f"\t{current_iteration}/{target_iterations}, " \
+           f"\t{completion_percentage}%, " \
+           f"\tStart: {running_time_text}, " \
+           f"\tLeft: {estimated_time_text}, " \
+           f"\tAvg: {round(average_time, 3)}s"

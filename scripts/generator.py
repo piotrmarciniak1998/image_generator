@@ -21,7 +21,7 @@ MIN_CAMERA_DISTANCE = 2.0  # define the closest distance of the camera
 MAX_CAMERA_DISTANCE = 3.0  # define the furthest distance of the camera
 MIN_CAMERA_ANGLE = -5  # define minimal angle of the camera (looking up)
 MAX_CAMERA_ANGLE = 15  # define maximal angle of the camera (looking down)
-NUMBER_OF_ITERATIONS = 1000  # define number of scenes to generate
+NUMBER_OF_ITERATIONS = 20000  # define number of scenes to generate
 
 
 if __name__ == "__main__":
@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
     # spawn every object that can be used during simulation
     for category in items:
-        print(f" - {category}")
+        print(f"    - {category} ({len(items[category])} items)")
         if category == TARGET_CATEGORY:
             item = items[TARGET_CATEGORY][TARGET_NUMBER]
             item.normalize_position(pose=(0, 0, -10))
@@ -69,7 +69,8 @@ if __name__ == "__main__":
         # printing completion percentage and estimated remaining time
         print(display_metrics(current_iteration=iteration,
                               target_iterations=NUMBER_OF_ITERATIONS,
-                              average_time=(perf_counter() - time_init) / (iteration + 0.000001)))
+                              time_start=time_init,
+                              time_now=perf_counter()))
 
         # spawning random table from urdf files
         table_number = randrange(len(items[TABLE_CATEGORY]))
