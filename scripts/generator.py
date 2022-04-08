@@ -19,7 +19,7 @@ TARGET_NUMBER = 2  # index of chosen item in target category
 RANDOM_ITEMS = 5  # how many unrelated items to spawn on the table
 MIN_CAMERA_DISTANCE = 2.0  # define the closest distance of the camera
 MAX_CAMERA_DISTANCE = 3.0  # define the furthest distance of the camera
-MIN_CAMERA_ANGLE = -5  # define minimal angle of the camera (looking up)
+MIN_CAMERA_ANGLE = -3  # define minimal angle of the camera (looking up)
 MAX_CAMERA_ANGLE = 15  # define maximal angle of the camera (looking down)
 NUMBER_OF_ITERATIONS = 20000  # define number of scenes to generate
 
