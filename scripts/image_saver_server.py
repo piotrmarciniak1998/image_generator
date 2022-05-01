@@ -4,6 +4,7 @@ import cv2
 import os
 import rospy
 import numpy as np
+import scipy.misc
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
 from image_generator.srv import ImageToSave, ImageToSaveResponse
@@ -23,7 +24,11 @@ def handle_image_to_save(req):
         return ImageToSaveResponse(False)
 
     if 'depth' in req.filename:
-        cv2_img = cv2_img * 63
+        cv2_img = (cv2_img - 0.05) / 3.95
+        cv2_img = cv2_img * 65535
+        cv2_img = np.array(cv2_img, dtype=np.uint16)  # This line only change the type, not values
+
+
     elif 'rgb' in req.filename:
         cv2_img = cv2.cvtColor(cv2_img, cv2.COLOR_BGR2GRAY)
 
