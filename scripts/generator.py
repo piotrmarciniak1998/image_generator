@@ -10,7 +10,7 @@ from time import perf_counter
 from datetime import datetime
 from sources.item import Item
 from sources.camera import Camera
-from sources.utils import position_on_item, calculate_occlusion, add_occlusion, display_metrics
+from sources.utils import position_on_item, calculate_occlusion, add_text, display_metrics, calculate_target_pos
 
 
 TABLE_CATEGORY = "table"  # label of table category
@@ -21,7 +21,7 @@ MIN_CAMERA_DISTANCE = 2.0  # define the closest distance of the camera
 MAX_CAMERA_DISTANCE = 3.0  # define the furthest distance of the camera
 MIN_CAMERA_ANGLE = -3  # define minimal angle of the camera (looking up)
 MAX_CAMERA_ANGLE = 15  # define maximal angle of the camera (looking down)
-NUMBER_OF_ITERATIONS = 20000  # define number of scenes to generate
+NUMBER_OF_ITERATIONS = 100  # define number of scenes to generate
 
 
 if __name__ == "__main__":
@@ -153,9 +153,11 @@ if __name__ == "__main__":
         rospy.sleep(0.2)
 
         occlusion = calculate_occlusion(msg_empty, msg_obstructor, msg_target, msg_target_obstructor)
-        add_occlusion(index=iteration,
-                      dirname=images_path,
-                      occlusion=occlusion)
+        target_cx, target_cy = calculate_target_pos(msg_empty, msg_target)
+        add_text(index=iteration,
+                 dirname=images_path,
+                 occlusion=occlusion,
+                 target_pos=f"{target_cx}_{target_cy}")
 
         # moving all the items away from the scene
         table.move(pose=(0, 0, -10))

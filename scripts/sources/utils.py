@@ -76,15 +76,41 @@ def calculate_occlusion(msg_empty, msg_obstructor, msg_target, msg_target_obstru
     return occlusion
 
 
-def add_occlusion(index, dirname, occlusion, photo_kinds=None):
+def add_text(index, dirname, occlusion="", target_pos="", photo_kinds=None):
     if photo_kinds is None:
         photo_kinds = ['depth_u', 'depth_o', 'rgb_u', 'rgb_o']
+    text = ""
+    if occlusion != "":
+        text += f"_{occlusion}"
+    if target_pos != "":
+        text += f"_{target_pos}"
     for kind in photo_kinds:
         try:
             os.rename(f"{dirname}/{index}_{kind}.png",
-                      f"{dirname}/{index}_{kind}_{occlusion}.png")
+                      f"{dirname}/{index}_{kind}{text}.png")
         except FileNotFoundError:
             pass
+
+
+def calculate_target_pos(msg_empty, msg_target):
+    bridge = CvBridge()
+    msg_empty.encoding = "32FC1"
+    msg_target.encoding = "32FC1"
+    img_empty = bridge.imgmsg_to_cv2(msg_empty, desired_encoding='passthrough')
+    img_target = bridge.imgmsg_to_cv2(msg_target, desired_encoding='passthrough')
+    img_empty = np.array(((img_empty - 0.05) / 3.95) * 255, dtype=np.uint8)
+    img_target = np.array(((img_target - 0.05) / 3.95) * 255, dtype=np.uint8)
+    diff = cv2.absdiff(img_target, img_empty)
+    _, th = cv2.threshold(diff, 1, 255, cv2.THRESH_BINARY)
+    contours, _ = cv2.findContours(th, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    biggest_contour = contours[0]
+    for contour in contours:
+        if cv2.contourArea(biggest_contour) < cv2.contourArea(contour):
+            biggest_contour = contour
+    m = cv2.moments(biggest_contour)
+    cx = int(m['m10'] / m['m00'])
+    cy = int(m['m01'] / m['m00'])
+    return cx, cy
 
 
 def display_metrics(current_iteration, target_iterations, time_start, time_now):
